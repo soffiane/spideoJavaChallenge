@@ -1,4 +1,4 @@
-package com.spideo.auction.exception;
+package com.spideo.auction.error;
 
 public class CustomErrorType {
 

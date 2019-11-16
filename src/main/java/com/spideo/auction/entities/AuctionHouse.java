@@ -1,42 +1,36 @@
 package com.spideo.auction.entities;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.*;
+import lombok.*;
 
-import javax.persistence.Column;
-import javax.persistence.ElementCollection;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import java.util.List;
+import javax.persistence.*;
+import java.io.Serializable;
+import java.util.HashSet;
+import java.util.Set;
 
 @Entity
-public class AuctionHouse {
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class AuctionHouse implements Serializable {
 
     @Id
-    private String name;
-    /*@Column(name = "auctions")
-    @ElementCollection(targetClass=Auction.class)
-    private List<Auction> auctions;*/
+    @GeneratedValue
+    @Column(name = "auctionHouseId", nullable = false, unique = true)
+    private long auctionHouseId;
 
-    public AuctionHouse() {
+    @Column(name = "auctionHouseName", nullable = false, unique = true)
+    private String auctionHouseName;
+
+    @JsonManagedReference
+    @OneToMany(mappedBy = "auctionHouse", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Auction> auctions = new HashSet<>();
+
+    public void addAuction(Auction auction){
+        auction.setAuctionHouse(this);
+        auctions.add(auction);
     }
 
-    public AuctionHouse(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    /*public List<Auction> getAuctions() {
-        return auctions;
-    }
-
-    public void setAuctions(List<Auction> auctions) {
-        this.auctions = auctions;
-    }*/
 }
