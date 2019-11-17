@@ -17,14 +17,18 @@ To get started :
 ## Running the tests
 
 You can test the API with Postman
+
 I have joined a file with all my http request made in Postman : testSpideoApi.postman_collection.json
 
 This file can be imported into your Postman to test all features
+
+The database is a H2 in-memory database you can access at : http://localhost:8080/h2-console/
 
 ## Built With
 
 * [SpringBoot](https://spring.io/projects/spring-boot) - The web framework used
 * [Maven](https://maven.apache.org/) - Dependency Management
+* [H2](https://www.h2database.com/html/main.html) - In-memory database
 
 ## Versioning
 
