@@ -1,11 +1,13 @@
 package com.spideo.auction.dto;
 
-import com.spideo.auction.entities.AuctionHouse;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.util.Date;
 
+/**
+ * The type Auction dto.
+ */
 @Data
 public class AuctionDTO {
 

@@ -3,7 +3,6 @@ package com.spideo.auction.dto;
 import com.spideo.auction.entities.Auction;
 import lombok.Data;
 
-import java.util.List;
 import java.util.Set;
 
 @Data

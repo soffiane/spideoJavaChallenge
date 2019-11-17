@@ -3,14 +3,19 @@ package com.spideo.auction.controller;
 import com.spideo.auction.dto.AuctionDTO;
 import com.spideo.auction.entities.Auction;
 import com.spideo.auction.entities.AuctionHouse;
+import com.spideo.auction.entities.Bid;
 import com.spideo.auction.error.CustomErrorType;
-import com.spideo.auction.repository.IAuctionHouseRepository;
-import com.spideo.auction.repository.IAuctionRepository;
+import com.spideo.auction.repository.AuctionHouseRepository;
+import com.spideo.auction.repository.AuctionRepository;
+import com.spideo.auction.repository.BidRepository;
+import com.spideo.auction.repository.UserRepository;
+import com.spideo.auction.status.AuctionStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -22,10 +27,16 @@ import java.util.Optional;
 public class AuctionController {
 
     @Autowired
-    private IAuctionRepository IAuctionRepository;
+    private AuctionRepository auctionRepository;
 
     @Autowired
-    private IAuctionHouseRepository IAuctionHouseRepository;
+    private AuctionHouseRepository auctionHouseRepository;
+
+    @Autowired
+    private BidRepository bidRepository;
+
+    @Autowired
+    private UserRepository userRepository;
 
     /**
      * Create auction on specified auctionHouse.
@@ -34,18 +45,19 @@ public class AuctionController {
      * @return the auction created
      */
     @PostMapping("")
-    public ResponseEntity createAuction(@RequestBody AuctionDTO auctionDTO) {
-        if(auctionDTO == null){
+    public ResponseEntity createAuction(@RequestBody final AuctionDTO auctionDTO) {
+        if (auctionDTO == null) {
             return ResponseEntity.badRequest().body("Cannot create auction with empty fields");
         }
 
-        Optional<AuctionHouse> auctionHouseStored = IAuctionHouseRepository.findById(auctionDTO.getAuctionHouseId());
-        if(!auctionHouseStored.isPresent()){
+        Optional<AuctionHouse> auctionHouseStored = auctionHouseRepository.findById(auctionDTO.getAuctionHouseId());
+        if (!auctionHouseStored.isPresent()) {
             return new ResponseEntity(new CustomErrorType("Unable to create new auction. An auctionHouse with id " +
                     auctionDTO.getAuctionHouseId() + " does not exist."), HttpStatus.NOT_FOUND);
         }
 
-        if(IAuctionRepository.findByName(auctionDTO.getAuctionName()).isPresent()){
+
+        if (auctionRepository.findByName(auctionDTO.getAuctionName()).isPresent()) {
             return new ResponseEntity(new CustomErrorType("Unable to create. A auction with name " +
                     auctionDTO.getAuctionName() + " already exist."), HttpStatus.CONFLICT);
         }
@@ -60,8 +72,8 @@ public class AuctionController {
 
         auctionHouse.addAuction(auction);
 
-        Auction createdAuction = IAuctionRepository.save(auction);
-        return new ResponseEntity<>(createdAuction,HttpStatus.CREATED);
+        Auction createdAuction = auctionRepository.save(auction);
+        return new ResponseEntity<>(createdAuction, HttpStatus.CREATED);
     }
 
     /**
@@ -72,16 +84,16 @@ public class AuctionController {
      */
     @GetMapping("/{auctionHouseId}")
     @ResponseBody
-    public ResponseEntity getAllAuctionHouse(@PathVariable(value = "auctionHouseId") Long auctionHouseId) {
-        Optional<AuctionHouse> auctionHouse = IAuctionHouseRepository.findById(auctionHouseId);
-        if(!auctionHouse.isPresent()){
-            return ResponseEntity.badRequest().body("Selected auction house with id "+auctionHouseId+" does not exist");
+    public ResponseEntity getAllAuctionHouse(@PathVariable(value = "auctionHouseId") final Long auctionHouseId) {
+        Optional<AuctionHouse> auctionHouse = auctionHouseRepository.findById(auctionHouseId);
+        if (!auctionHouse.isPresent()) {
+            return ResponseEntity.badRequest().body("Selected auction house with id " + auctionHouseId + " does not exist");
         }
-        List<Auction> auctions = IAuctionRepository.findAllById(auctionHouse.get());
-        if(auctions.isEmpty()){
+        List<Auction> auctions = auctionRepository.findAllById(auctionHouse.get());
+        if (auctions.isEmpty()) {
             return new ResponseEntity<Auction>(HttpStatus.NO_CONTENT);
         } else {
-            return new ResponseEntity<List<Auction>>(auctions,HttpStatus.OK);
+            return new ResponseEntity<List<Auction>>(auctions, HttpStatus.OK);
         }
     }
 
@@ -92,16 +104,86 @@ public class AuctionController {
      * @return the http response
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity deleteAuction(@PathVariable(value = "id") Long id) {
+    public ResponseEntity deleteAuction(@PathVariable(value = "id") final Long id) {
         Optional<Auction> auction =
-                IAuctionRepository
+                auctionRepository
                         .findById(id);
-        if(auction.isPresent()){
-            IAuctionRepository.delete(auction.get());
-            return ResponseEntity.ok("auction "+id+" successfully deleted");
+        if (auction.isPresent()) {
+            auctionRepository.delete(auction.get());
+            return ResponseEntity.ok("auction " + id + " successfully deleted");
         } else {
-            return new ResponseEntity(new CustomErrorType("Unable to delete. An auction with id " +
-                    id + " does not exist."), HttpStatus.NOT_FOUND);
+            return new ResponseEntity(new CustomErrorType("Unable to delete. An auction with id "
+                    + id + " does not exist."), HttpStatus.NOT_FOUND);
         }
+    }
+
+    /**
+     * Update auction.
+     *
+     * @param auctionDTO the auction to be updated
+     * @return the auction created
+     */
+    @PutMapping("")
+    public ResponseEntity updateAuction(@RequestBody final AuctionDTO auctionDTO) {
+        if (auctionDTO == null) {
+            return ResponseEntity.badRequest().body("Cannot update auction with empty fields");
+        }
+
+        Optional<AuctionHouse> auctionHouseStored = auctionHouseRepository.findById(auctionDTO.getAuctionHouseId());
+        if (!auctionHouseStored.isPresent()) {
+            return new ResponseEntity(new CustomErrorType("Unable to create new auction. An auctionHouse with id " +
+                    auctionDTO.getAuctionHouseId() + " does not exist."), HttpStatus.NOT_FOUND);
+        }
+
+        Optional<Auction> currentAuction = auctionRepository.findByName(auctionDTO.getAuctionName());
+        if (currentAuction.isPresent()) {
+            return new ResponseEntity(new CustomErrorType("Unable to create. A auction with name " +
+                    auctionDTO.getAuctionName() + " already exist."), HttpStatus.CONFLICT);
+        }
+        Auction auction = currentAuction.get();
+        auction.setStartingTime(auctionDTO.getStartingTime());
+        auction.setEndTime(auctionDTO.getEndTime());
+
+        Auction createdAuction = auctionRepository.save(auction);
+        return new ResponseEntity<>(createdAuction, HttpStatus.CREATED);
+    }
+
+    /**
+     * Show the winner for a terminated auction.
+     *
+     * @param auctionId the auction id
+     * @return the http response
+     */
+    @GetMapping("/winner/{auctionId}")
+    public ResponseEntity showAuctionWinner(@PathVariable(value = "auctionId") Long auctionId) {
+        ResponseEntity responseEntity = null;
+        Optional<Auction> auction =
+                auctionRepository
+                        .findById(auctionId);
+        //check if the auction exists
+        if (auction.isPresent()) {
+            Auction auctionFound = auction.get();
+            //check if the auction is terminated
+            if (AuctionStatus.TERMINATED.equals(auctionFound.getStatus())) {
+                //retrieve the list of bids for this auction
+                List<Bid> bids = bidRepository.findByAuctionId(auctionFound.getAuctionId());
+                if (!bids.isEmpty()) {
+                    //finding bid with higher price
+                    Bid bid = bids.stream().max(Comparator.comparing(Bid::getBidPrice)).get();
+                    responseEntity = ResponseEntity.ok("the winner of the auction " + auctionFound.getAuctionName() + " is " + bid.getUser().getUserName());
+                } else {
+                    responseEntity = new ResponseEntity(new CustomErrorType("There is no bids for the auction with the id "
+                            + auctionId), HttpStatus.NOT_FOUND);
+                }
+
+            } else {
+                responseEntity = new ResponseEntity(new CustomErrorType("An auction with id " +
+                        auctionId + " is not terminated."), HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            responseEntity = new ResponseEntity(new CustomErrorType("An auction with id " +
+                    auctionId + " does not exist."), HttpStatus.NOT_FOUND);
+        }
+        return responseEntity;
     }
 }

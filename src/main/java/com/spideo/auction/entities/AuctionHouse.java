@@ -8,6 +8,9 @@ import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * The type Auction house.
+ */
 @Entity
 @Getter
 @Setter
@@ -24,11 +27,19 @@ public class AuctionHouse implements Serializable {
     @Column(name = "auctionHouseName", nullable = false, unique = true)
     private String auctionHouseName;
 
-    @JsonManagedReference
+    /**
+     * list of auctions occuring in this auction House
+     */
+    @JsonManagedReference(value = "auction")
     @OneToMany(mappedBy = "auctionHouse", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<Auction> auctions = new HashSet<>();
 
-    public void addAuction(Auction auction){
+    /**
+     * Add auction to the auction House.
+     *
+     * @param auction the auction
+     */
+    public void addAuction(final Auction auction) {
         auction.setAuctionHouse(this);
         auctions.add(auction);
     }
