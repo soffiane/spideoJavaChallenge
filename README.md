@@ -18,6 +18,7 @@ To get started :
 
 You can test the API with Postman
 I have joined a file with all my http request made in Postman : testSpideoApi.postman_collection.json
+
 This file can be imported into your Postman to test all features
 
 ## Built With
