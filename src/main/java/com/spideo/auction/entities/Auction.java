@@ -18,11 +18,10 @@ import java.util.Set;
  * The type Auction.
  */
 @Entity
-@Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@Data
 public class Auction implements Serializable {
     @Id
     @GeneratedValue

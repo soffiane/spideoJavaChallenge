@@ -27,8 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = AuctionHouseController.class)
 @WebMvcTest
 public class AuctionHouseControllerTests extends AbstractJUnit4SpringContextTests {
-/*
-    @Autowired
+   /* @Autowired
     private MockMvc mockMvc;
 
     @Autowired
@@ -52,7 +51,7 @@ public class AuctionHouseControllerTests extends AbstractJUnit4SpringContextTest
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext).build();
 
         String body = "{\n" +
-                "\"name\":\"auctionHouse\"\n" +
+                "\"auctionHouseName\":\"auctionHouse\"\n" +
                 "}";
 
         MvcResult mvcResult = mockMvc.perform(post("")
