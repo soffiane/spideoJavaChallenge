@@ -35,7 +35,7 @@ public class AuctionHouseController {
         }
 
         if (auctionHouseRepository.findByName(auctionHouseDTO.getName()).isPresent()) {
-            return new ResponseEntity(new CustomErrorType("Unable to create. A auctionHouse with name "
+            return new ResponseEntity<>(new CustomErrorType("Unable to create. A auctionHouse with name "
                     + auctionHouseDTO.getName() + " already exist."), HttpStatus.CONFLICT);
         }
 
@@ -55,12 +55,14 @@ public class AuctionHouseController {
     @GetMapping("")
     @ResponseBody
     public ResponseEntity getAllAuctionHouse() {
+        ResponseEntity result;
         List<AuctionHouse> auctionHouses = auctionHouseRepository.findAll();
         if (auctionHouses.isEmpty()) {
-            return ResponseEntity.noContent().build();
+            result = ResponseEntity.noContent().build();
         } else {
-            return ResponseEntity.ok(auctionHouses);
+            result = ResponseEntity.ok(auctionHouses);
         }
+        return result;
     }
 
     /**
@@ -71,15 +73,17 @@ public class AuctionHouseController {
      */
     @DeleteMapping("/{id}")
     public ResponseEntity deleteAuctionHouse(@PathVariable(value = "id") final Long id) {
+        ResponseEntity result;
         Optional<AuctionHouse> auctionHouse =
                 auctionHouseRepository
                         .findById(id);
         if (auctionHouse.isPresent()) {
             auctionHouseRepository.delete(auctionHouse.get());
-            return ResponseEntity.ok("auctionHouse " + id + " successfully deleted");
+            result = ResponseEntity.ok("auctionHouse " + id + " successfully deleted");
         } else {
-            return new ResponseEntity(new CustomErrorType("Unable to delete. An auctionHouse with id "
+            result = new ResponseEntity<>(new CustomErrorType("Unable to delete. An auctionHouse with id "
                     + id + " does not exist."), HttpStatus.NOT_FOUND);
         }
+        return result;
     }
 }
